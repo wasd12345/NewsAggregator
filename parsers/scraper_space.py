@@ -1,5 +1,4 @@
-from selenium import webdriver
-from time import sleep
+from parsers.Scraper import Scraper
 
 
 def scraper_space(browser, **kwargs):
@@ -10,47 +9,40 @@ def scraper_space(browser, **kwargs):
     which is a space and astronomy news website. Read more about it here:
         https://en.wikipedia.org/wiki/Space.com
 
+
     inputs:
         browser - a Selenium browser object, initialized in the main code as:
             browser = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH)
             
+        kwargs - dict of the relevant parameters for parsing
+            
+        
     outputs:
         (content, success) - tuple of content (string) and success (boolean).
         content is string containing the parsed information
         success is boolean. True if parsing completed successfully, False otherwise.
         If False, the content will NOT be included in the final email/text message.
     """
-    success = False
-    n_articles = kwargs['n_articles']
-    CSS_vs_XPATH = 'XPATH' #'CSS'
     
-    # Go to the website in Selenium browser
-    browser.get('https://www.space.com/news')
-    sleep(15) #Sleep a while since lots of graphics which may be slow to load
-    content = ''
+    # Hard coded params specific to space.com news website:
+    URL = 'https://www.space.com/news'
+    articles_inds = [i for i in range(1,21) if i!=2] # has ~20 articles and 2nd is an ad w/ different format
+    title_xpath = '//*[@id="content"]/section/section/div[2]/div[{ARTICLE_INDEX}]/a/article/div[2]/header/h3'
+    abstract_xpath = '//*[@id="content"]/section/section/div[2]/div[{ARTICLE_INDEX}]/a/article/div[2]/p'
+    author_time_xpath = '//*[@id="content"]/section/section/div[2]/div[{ARTICLE_INDEX}]/a/article/div[2]/header/p'
     
-    for ii in range(n_articles):
-        # For div[2] as of 5/2020 the 2nd item is an ad, with different format, so skip
-        if ii==1:
-            continue
-        if CSS_vs_XPATH == 'XPATH':
-            selector_title = f'//*[@id="content"]/section/section/div[2]/div[{ii+1}]/a/article/div[2]/header/h3'
-            selector_abstract = f'//*[@id="content"]/section/section/div[2]/div[{ii+1}]/a/article/div[2]/p'
-            selector_author_time = f'//*[@id="content"]/section/section/div[2]/div[{ii+1}]/a/article/div[2]/header/p'
-            title = browser.find_element_by_xpath(selector_title)
-            abstract = browser.find_element_by_xpath(selector_abstract)
-            author_time = browser.find_element_by_xpath(selector_author_time)        
-
-        title = title.text
-        abstract = abstract.text
-        author_time = author_time.text
         
-        content += f"{title}\n{abstract}\n{author_time}\n\n"
-        # print(title)
-        # print(abstract)
-        # print(author_time)
-        # print()
-        sleep(.5)
+    #Params from kwargs:
+    TITLES_ONLY = kwargs['titles_only']
+    index_template = '{ARTICLE_INDEX}'
+    params = {'browser':browser, 'url':URL, 'titles_only':TITLES_ONLY,
+              'index_template':index_template,
+              'title_xpath': title_xpath,
+              'abstract_xpath': abstract_xpath,
+              'author_time_xpath': author_time_xpath,
+              'articles_inds': articles_inds}
     
-    success = True
-    return (content, success)
+    #Do the actual parsing:
+    sc = Scraper(**params)
+    
+    return sc.scrape_data() #(content, success)

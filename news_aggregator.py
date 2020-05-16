@@ -1,8 +1,43 @@
+# =============================================================================
+# WHAT:
+#
+# Python script to aggregate articles from different text sources and email/text
+# updates to set of recipients.
+#
+# 
+# USE:
+#
+# To add your own data source:
+# 1) make "scraper_{YOUR_SOURCE}.py" in the "parser" directory
+# 2) put in a few parameters into your scraper (URL, XPATH string to the text you care about, ...)
+# 3) import here in this script
+# 4) add to "SOURCES_DICT" variable in this script's parameters
+#
+# ** You must have a valid gmail account to send the messages from
+#    and it must be enabled with a gmail application password login **
+#
+#
+#
+#
+# TO DO:
+#
+# - track when last updated / if specific article seen already,
+#   so can return only new articles
+#
+# - new sources.... 
+# 
+# - save out text, collect for longer time period, for long-term NLP analysis
+# =============================================================================
+
 from selenium import webdriver
 import time
 import smtplib
 
-from parsers import scraper_c4isr, scraper_space
+from parsers import scraper_c4isr, scraper_space, scraper_darpa
+
+
+
+
 
 
 
@@ -13,8 +48,9 @@ OWN_GMAIL_ADDRESS = '......@gmail.com'
 GMAIL_APP_PASSWORD = '......'
 PHONE_EMAIL = "..........@mms.att.net"
 CHROMEDRIVER_PATH = 'chromedriver81.exe' #For Chrome version 81, from 5/2020
-SOURCES_DICT = {'C4ISR':{'scraper':scraper_c4isr.scraper_c4isr, 'params':{'n_articles':7}},
-                'Space':{'scraper':scraper_space.scraper_space, 'params':{'n_articles':20}},
+SOURCES_DICT = {'C4ISR':{'scraper':scraper_c4isr.scraper_c4isr, 'params':{'titles_only':False}},
+                'Space':{'scraper':scraper_space.scraper_space, 'params':{'titles_only':False}},
+                'DARPA':{'scraper':scraper_darpa.scraper_darpa, 'params':{'titles_only':False}},
                 }
 RESEND_TIME_MINS = 30 #Time (in minutes) between checking whole set of sources again
 
@@ -22,19 +58,15 @@ RESEND_TIME_MINS = 30 #Time (in minutes) between checking whole set of sources a
 
 
 
-
+# =============================================================================
+# MAIN
 # =============================================================================
 # INITIALIZE DRIVER
-# ==========================================================================in===
 selenium_browser = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH)
 time.sleep(3)
 selenium_browser.get('https://www.google.com')
 time.sleep(3)
 
-
-# =============================================================================
-# MAIN
-# =============================================================================
 while True:
     parsed = {}
     for source in SOURCES_DICT.items():
@@ -57,10 +89,14 @@ while True:
     content = ''
     for mm in parsed.items():
         #If the parser finished successfully for this data source, include in message:
-        if mm[1][1] == True:
-            content += mm[1][0]
-            content += '-'*50
-            content += '\n'*5
+        # if mm[1][1] == True:
+        #     content += mm[1][0]
+        #     content += '-'*50
+        #     content += '\n'*5
+        # Actually, use the content anyway. Even if not all articles successful, some articles may have been parsed, so include them:
+        content += mm[1][0]
+        content += '-'*50
+        content += '\n'*5
     # print(content)
     print()
     

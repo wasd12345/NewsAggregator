@@ -1,13 +1,13 @@
 from parsers.Scraper import Scraper
 
 
-def scraper_c4isr(browser, **kwargs):
+def scraper_darpa(browser, **kwargs):
     """
     Scraper function for the website:
-        https://www.c4isrnet.com/
+        https://www.darpa.mil/news
         
-    which is a Defense industry related news website. Read more about it here:
-        https://en.wikipedia.org/wiki/C4ISRNET
+    which is a space and astronomy news website. Read more about it here:
+        https://en.wikipedia.org/wiki/Space.com
 
 
     inputs:
@@ -25,13 +25,13 @@ def scraper_c4isr(browser, **kwargs):
     """
     
     # Hard coded params specific to space.com news website:
-    URL = 'https://www.c4isrnet.com/'
-    articles_inds = [i for i in range(1,8)] # has ~7 articles
-    title_xpath = '//*[@id="f0OvfQZXoM31Zr"]/div/ul/li[{ARTICLE_INDEX}]/article/div[3]/div/h5/a'
-    abstract_xpath = '//*[@id="f0OvfQZXoM31Zr"]/div/ul/li[{ARTICLE_INDEX}]/article/div[3]/div/p'
-    author_time_xpath = '//*[@id="f0OvfQZXoM31Zr"]/div/ul/li[{ARTICLE_INDEX}]/article/div[3]/div/div'
+    URL = 'https://www.darpa.mil/news?ppl=view16' #48
+    articles_inds = [i for i in range(16)] # view w either 16 vs. 48 articles, 0 indexed
+    title_xpath = '//*[@id="dnn_ctr441_SimpleList_dlListItems_liPM_{ARTICLE_INDEX}_aListingLink_{ARTICLE_INDEX}"]'
+    abstract_xpath = '//*[@id="dnn_ctr441_SimpleList_dlListItems_liPM_{ARTICLE_INDEX}_divListingCopy_{ARTICLE_INDEX}"]'
+    author_time_xpath = '//*[@id="dnn_ctr441_SimpleList_dlListItems_liPM_{ARTICLE_INDEX}_divListingDate_{ARTICLE_INDEX}"]'
     
-        
+    
     #Params from kwargs:
     TITLES_ONLY = kwargs['titles_only']
     index_template = '{ARTICLE_INDEX}'
@@ -45,4 +45,4 @@ def scraper_c4isr(browser, **kwargs):
     #Do the actual parsing:
     sc = Scraper(**params)
     
-    return sc.scrape_data() #(content, success)    
+    return sc.scrape_data() #(content, success)
